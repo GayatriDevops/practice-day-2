@@ -1,0 +1,38 @@
+Global configuration
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. Default is every 1 minute.
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+# A scrape configuration for Prometheus itself
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # A scrape configuration for EC2 servers
+  - job_name: "ec2_servers"
+    static_configs:
+      - targets: ['10.0.2.35']    # Here just give public IP of server1
+        labels:
+          instance: 'server1'
+      - targets: ['10.0.1.63']
+        labels:
+          instance: 'server2'
+      - targets: ['10.0.1.74']
+        labels:
+          instance: 'server3'
+      - targets: ['10.0.1.6']
+        labels:
+          instance: 'server4'
