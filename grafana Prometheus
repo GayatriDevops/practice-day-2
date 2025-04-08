@@ -1,0 +1,73 @@
+wget https://github.com/prometheus/prometheus/releases/download/v2.48.0/prometheus-2.48.0.linux-amd64.tar.gz
+    tar xvf prometheus-2.48.0.linux-amd64.tar.gz
+   sudo mv prometheus-2.48.0.linux-amd64 /opt/prometheus
+    6  ls
+    7  sudo vi /opt/prometheus/prometheus.yml
+
+# Global configuration
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. Default is every 1 minute.
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+# A scrape configuration for Prometheus itself
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # A scrape configuration for EC2 servers
+  - job_name: "ec2_servers"
+    static_configs:
+      - targets: ['10.0.4.108:9100']    - Here just give public IP of server1
+        labels:
+          instance: 'server1'
+      - targets: ['10.0.3.179:9100']
+        labels:
+          instance: 'server2'
+   
+
+ 
+   11  sudo systemctl restart prometheus
+   12  sudo /opt/prometheus/prometheus --config.file=/opt/prometheus/prometheus.yml &
+  
+   14  curl http://localhost:9090/api/v1/status/config
+   15  sudo apt-get update
+   16  sudo apt-get install -y software-properties-common
+   17  sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+   18  wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+   19  sudo apt-get update
+   20  sudo apt-get install grafana
+   21  sudo systemctl start grafana-server
+   22  sudo systemctl enable grafana-server
+
+Step 1: Prepare Monitored Servers 
+On both EC2 instances (let’s call them server1 and server2):
+1. Update the system packages: Run this to ensure the system is up-to-date:
+sudo apt-get update && sudo apt-get upgrade -y
+
+2.Install Node Exporter: Download and set up Node Exporter using the following commands:
+wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
+tar xvf node_exporter-1.7.0.linux-amd64.tar.gz
+sudo mv node_exporter-1.7.0.linux-amd64/node_exporter /usr/local/bin/
+
+3.Run Node Exporter: Start Node Exporter on both EC2 instances:
+sudo /usr/local/bin/node_exporter &
+Node Exporter will start and listen on port 9100
+
+4.Verify Node Exporter:
+Open a browser and go to:
+http://publicIP:9100/metrics for server1 and server2.
+
+Once this is done, both servers will be ready for Prometheus to scrape metrics.
